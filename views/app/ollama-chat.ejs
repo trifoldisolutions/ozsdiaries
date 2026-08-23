@@ -1,0 +1,133 @@
+<%- include('../partials/header', { title }) %>
+
+<main class="mx-auto max-w-3xl px-4 py-12">
+  <h1 class="text-2xl font-semibold">Chat</h1>
+  <p class="mt-2 text-slate-600">Pick a personality and send it a message.</p>
+
+  <% if (error) { %>
+    <div class="mt-6 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      <%= error %>
+    </div>
+  <% } %>
+
+  <form id="chat-form" class="mt-6 space-y-4">
+    <div>
+      <label for="personaId" class="block text-sm font-medium text-slate-700">Personality</label>
+      <select
+        id="personaId"
+        name="personaId"
+        class="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-slate-500 focus:outline-none"
+        <%= personas.length ? '' : 'disabled' %>
+      >
+        <% personas.forEach((p) => { %>
+          <option value="<%= p.id %>" <%= p.id === selectedPersonaId ? 'selected' : '' %>><%= p.name %></option>
+        <% }) %>
+      </select>
+      <p id="persona-description" class="mt-1 text-xs text-slate-500"></p>
+    </div>
+
+    <div>
+      <label for="prompt" class="block text-sm font-medium text-slate-700">Message</label>
+      <textarea
+        id="prompt"
+        name="prompt"
+        rows="4"
+        required
+        class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-slate-500 focus:outline-none"
+        placeholder="Say something..."
+      ><%= prompt %></textarea>
+    </div>
+
+    <button
+      type="submit"
+      id="submit-btn"
+      class="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50"
+      <%= personas.length ? '' : 'disabled' %>
+    >
+      <svg id="submit-spinner" class="hidden h-4 w-4 animate-spin text-white" viewBox="0 0 24 24" fill="none">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+      </svg>
+      <span id="submit-label">Send</span>
+    </button>
+  </form>
+
+  <div id="fetch-error" class="mt-6 hidden rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
+
+  <div id="response-section" class="mt-8 hidden">
+    <h2 class="text-sm font-medium text-slate-700">Response</h2>
+    <div id="response-box" class="mt-2 whitespace-pre-wrap rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm"></div>
+  </div>
+</main>
+
+<script>
+  (function () {
+    const personas = <%- JSON.stringify(personas) %>;
+    const form = document.getElementById('chat-form');
+    const personaSelect = document.getElementById('personaId');
+    const personaDescription = document.getElementById('persona-description');
+    const submitBtn = document.getElementById('submit-btn');
+    const submitSpinner = document.getElementById('submit-spinner');
+    const submitLabel = document.getElementById('submit-label');
+    const fetchError = document.getElementById('fetch-error');
+    const responseSection = document.getElementById('response-section');
+    const responseBox = document.getElementById('response-box');
+
+    function updatePersonaDescription() {
+      const persona = personas.find((p) => p.id === personaSelect.value);
+      personaDescription.textContent = persona ? persona.description : '';
+    }
+
+    if (personaSelect) {
+      personaSelect.addEventListener('change', updatePersonaDescription);
+      updatePersonaDescription();
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const prompt = form.prompt.value;
+      const personaId = form.personaId.value;
+
+      fetchError.classList.add('hidden');
+      responseSection.classList.add('hidden');
+      submitBtn.disabled = true;
+      submitSpinner.classList.remove('hidden');
+      submitLabel.textContent = 'Waiting for the model...';
+
+      try {
+        const res = await fetch('/app/ollama-chat/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt, personaId }),
+        });
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          fetchError.textContent = data.error || `Request failed with status ${res.status}`;
+          fetchError.classList.remove('hidden');
+        } else {
+          responseBox.textContent = '';
+          responseSection.classList.remove('hidden');
+
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            responseBox.textContent += decoder.decode(value, { stream: true });
+          }
+        }
+      } catch (err) {
+        fetchError.textContent = `Request failed: ${err.message}`;
+        fetchError.classList.remove('hidden');
+      } finally {
+        submitBtn.disabled = false;
+        submitSpinner.classList.add('hidden');
+        submitLabel.textContent = 'Send';
+      }
+    });
+  })();
+</script>
+
+<%- include('../partials/footer') %>
