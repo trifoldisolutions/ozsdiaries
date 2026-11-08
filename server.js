@@ -6,13 +6,12 @@ const mongoose = require('mongoose');
 const publicRoutes = require('./routes/public');
 const appRoutes = require('./routes/app');
 const adminRoutes = require('./routes/admin');
-const tasksRoutes = require('./routes/tasks');
 
 const app = express();
 const PORT = process.env.PORT || 3009;
 
 app.set('view engine', 'ejs');
-app.set('views', [path.join(__dirname, 'views'), path.join(__dirname, 'dev_resources')]);
+app.set('views', path.join(__dirname, 'views'));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -31,7 +30,6 @@ const facades = [
   { name: 'Public', mount: '/', router: publicRoutes },
   { name: 'App', mount: '/app', router: appRoutes },
   { name: 'Admin', mount: '/admin', router: adminRoutes },
-  { name: 'Dev Resources', mount: '/dev-resources/tasks', router: tasksRoutes },
 ];
 
 facades.forEach((facade) => {
