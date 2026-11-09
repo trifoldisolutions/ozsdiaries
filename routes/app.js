@@ -1,7 +1,7 @@
 const express = require('express');
 const { Readable } = require('stream');
 const router = express.Router();
-const { loadPersonas, getPersonaById } = require('../lib/personas');
+const { loadPersonas, getPersonaById } = require('../services/personas');
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1';
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
@@ -24,7 +24,7 @@ router.get('/', (req, res) => {
 });
 
 router.get('/login', (req, res) => {
-  res.render('app/login', { title: 'Log In / Sign Up' });
+  res.render('app/auth/login', { title: 'Log In / Sign Up' });
 });
 
 router.get('/diaries', (req, res) => {

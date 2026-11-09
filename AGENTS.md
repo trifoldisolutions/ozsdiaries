@@ -26,7 +26,7 @@ ozsdiaries/
 ├── AGENTS.md
 ├── package.json, .env, .env.example, .gitignore, ozsdiaries.vbs
 ├── .vscode/tasks.json   Runs `npm run tw` and `npm run dev` on folder open
-├── config/              Constants and settings: limits, pricing, brand
+├── config/              Constants and settings: limits, pricing, brand. personas/ holds the persona definitions, one Markdown file each, read by services/personas.js
 ├── models/              Mongoose models, one per file
 ├── routes/
 │   ├── public.js        Public pages, mounted at /
@@ -36,9 +36,8 @@ ozsdiaries/
 │   └── webhooks.js      Calls from outside services, mounted at /api/webhooks, before api.js (add when needed)
 ├── middleware/          Express middleware: sign-in, rate limits, security headers, request logging
 ├── services/            Shared logic and outside services (email, payments, storage). A large one gets its own folder with an index.js
-├── personas/            Persona definitions, one Markdown file each, read by lib/personas.js
 ├── views/
-│   ├── partials/        Shared by every section: header.ejs, footer.ejs
+│   ├── partials/        Shared by every section: head.ejs, foot.ejs
 │   ├── public/          Public pages
 │   ├── app/             App pages, with sign-in pages in app/auth/
 │   └── admin/           Admin pages, with its own partials in admin/partials/
@@ -53,7 +52,7 @@ ozsdiaries/
 ```
 
 - **Routes:** Add each route to its section's file, with a line in that file's `router.routes` list (`{ method, path, label }`). No routes in `server.js`, and no new route file per feature. Logic that several routes share, or that calls an outside service, goes in `services/`.
-- **Folder names:** No new `utils/`, `lib/` or `helpers/`. `lib/personas.js` stays where it is, but new helpers go in `services/`, or in `middleware/` if they handle a request.
+- **Folder names:** No `utils/`, `lib/` or `helpers/`. Helpers go in `services/`, or in `middleware/` if they handle a request.
 - **Views:** Every page goes in its section's folder, never directly in `views/`. The folder already says the section, so name files for what they show: `views/admin/users.ejs`, not `views/admin-users.ejs`.
 - **Local-only files:** Notes, screenshots, logs, prompts, one-off scripts and source images go in `dev_resources/`, not the project root.
 - **Instruction files:** `AGENTS.md` is the only one. No `CLAUDE.md` or `.claude/` folder.

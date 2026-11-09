@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const PERSONAS_DIR = path.join(__dirname, '..', 'personas');
+const PERSONAS_DIR = path.join(__dirname, '..', 'config', 'personas');
 
 function parsePersonaFile(raw) {
   const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
